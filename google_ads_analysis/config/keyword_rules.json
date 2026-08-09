@@ -1,0 +1,13 @@
+{
+  "high_intent_words": [
+    "xưởng", "gia công", "mạ pvd", "báo giá", "mua", 
+    "hcm", "hồ chí minh", "sản xuất", "chấn", "gập", "cắt", "cnc"
+  ],
+  "informational_words": [
+    "kích thước", "là gì", "cách", "hướng dẫn", "mẫu", "bảng", "bao nhiêu"
+  ],
+  "waste_words": [
+    "nhựa", "nẹp đồng", "nẹp gỗ", "ốp gỗ", "chỉ gỗ", 
+    "sắt", "thanh lý", "cũ", "giáo trình", "học", "tự làm", "trẻ mầm non", "lớp"
+  ]
+}

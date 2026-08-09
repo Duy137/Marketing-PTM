@@ -1,0 +1,32 @@
+# 1. Môi trường & Bảo mật
+.env
+*.env
+# 2. File thực thi & Nhị phân siêu nặng
+*.exe
+ptm_auto_post/cloudflared.exe
+# 3. Môi trường Python (Cache & Virtual Env)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+# 4. Thư mục Media & Hình ảnh Render
+AI Gen Photos/
+ptm_auto_post/media/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+# 5. Dữ liệu phân tích & Báo cáo thô (Google Ads)
+google_ads_analysis/data/
+*.csv
+*.xlsx
+# 6. File Logs & Lịch sử chạy lệnh
+logs/
+*.log
+# 7. File hệ thống & IDE
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,41 @@
+# Environments & Sensitive Keys
+.env
+config/.env
+*.env
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Heavy Media Assets & Image Files
+media/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.bmp
+
+# Logs & History
+logs/
+*.log
+
+# IDEs & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Temporary & OS Files
+Thumbs.db
+tmp/
+scratch/

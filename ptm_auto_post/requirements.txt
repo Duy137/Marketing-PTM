@@ -1,0 +1,10 @@
+langchain-core
+langchain-google-genai
+langchain-openai          # Cần nếu dùng LLM_PROVIDER=openai
+langchain-anthropic       # Cần nếu dùng LLM_PROVIDER=claude
+langgraph
+python-dotenv
+python-telegram-bot
+requests
+pandas
+
