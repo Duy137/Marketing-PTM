@@ -30,3 +30,6 @@ logs/
 .vscode/
 .DS_Store
 Thumbs.db
+
+#File draft
+catalogue_tu_bep/

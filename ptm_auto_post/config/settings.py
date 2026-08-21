@@ -102,6 +102,7 @@ MEDIA_FOLDER_MAP: dict[str, Path] = {
     "do_kinh_inox":             MEDIA_DIR / "do_kinh_inox",
     "gia_cong_cnc_inox":        MEDIA_DIR / "gia_cong_cnc_inox",
     "nep_inox":                 MEDIA_DIR / "nep_inox",
+    "giao_hang":               MEDIA_DIR / "giao_hang",
 }
 
 
