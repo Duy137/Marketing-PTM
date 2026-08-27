@@ -26,14 +26,15 @@ CẤU TRÚC:
 4. CTA liên hệ + địa chỉ đầy đủ
 
 PHONG CÁCH:
-- Tự nhiên, dễ đọc, không quá dài
+- SIÊU NGẮN GỌN, SÚC TÍCH, ĐI THẲNG VÀO VẤN ĐỀ. Người dùng lướt Facebook rất nhanh, tuyệt đối KHÔNG viết dài dòng lê thê.
+- Tập trung mạnh vào lợi ích cốt lõi (GIÁ XƯỞNG, SẴN HÀNG, TIẾN ĐỘ, ĐẸP). Bỏ qua các câu dẫn dắt rườm rà, sáo rỗng.
+- Tự nhiên, dễ đọc, mang tính chất "chốt sale" nhanh.
 - Không quảng cáo lộ liễu
 - Dùng nhiều emoji để bài đăng sinh động, bắt mắt trên Facebook
 - Khi đánh số thứ tự, PHẢI dùng emoji số: 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ thay vì dùng "1. 2. 3."
 - Khi liệt kê không đánh số, dùng emoji bullet thay cho dấu gạch đầu dòng (-). Ưu tiên các emoji: ✅ 👉 🔹 ⚡ 💡 🎯 🔥 ✨ 💎 🛡️
 - Emoji thương hiệu có thể dùng xuyên suốt bài: 🏭 🔩 🏗️ 📐 ✂️
-- Độ dài: 120–180 chữ
-
+- Độ dài tối đa: 80–120 chữ (Càng ngắn gọn, đánh trúng tâm lý càng tốt).
 TUYỆT ĐỐI KHÔNG:
 - Bịa số liệu không có thật
 - Hứa hẹn giá "rẻ nhất", "số 1"
