@@ -19,14 +19,26 @@ STATUS_EMOJI = {
 }
 
 
+AVAILABLE_MODES = [
+    {"code": "Product",       "name": "Product",       "emoji": "📦"},
+    {"code": "Sales",         "name": "Sales",         "emoji": "💰"},
+    {"code": "Social Proof",  "name": "Social Proof",  "emoji": "🚚"},
+    {"code": "Educational",   "name": "Educational",   "emoji": "🎓"},
+    {"code": "Pain & Relief", "name": "Pain & Relief", "emoji": "🛡️"},
+    {"code": "Authority",     "name": "Authority",     "emoji": "🏭"},
+    {"code": "Lifestyle",     "name": "Lifestyle",     "emoji": "✨"},
+]
+
+
 # ==============================================
 # VIEW: CHỌN CHỦ ĐỀ (TOPIC SELECTION)
 # ==============================================
 
-def render_suggestion_text(topic: dict) -> str:
+def render_suggestion_text(topic: dict, active_mode: str | None = None) -> str:
     """Nội dung text màn hình Gợi ý chủ đề."""
+    filter_tag = f" [Lọc: 🏷️ <b>{active_mode}</b>]" if active_mode else ""
     return (
-        f"📌 <b>Gợi ý chủ đề hôm nay:</b>\n\n"
+        f"📌 <b>Gợi ý chủ đề hôm nay{filter_tag}:</b>\n\n"
         f"💡 {topic['chu_de']}\n"
         f"🎯 Mode: {topic['mode']}\n"
         f"📁 Thư mục ảnh: {topic['thu_muc_anh']}"
@@ -40,47 +52,100 @@ def render_suggestion_keyboard() -> dict:
             [
                 {"text": "✅ Viết bài này",  "callback_data": "tsc"},
                 {"text": "🔄 Gợi ý khác",   "callback_data": "tsn"},
-                {"text": "📋 Xem tất cả",   "callback_data": "tsl_1"},
+            ],
+            [
+                {"text": "🎯 Đổi Mode",     "callback_data": "tsm_sug"},
+                {"text": "📋 Xem danh sách", "callback_data": "tsl_1"},
             ]
         ]
     }
 
 
-def render_list_text(page: int, page_topics: list[dict], all_topics: list[dict]) -> str:
+def render_mode_picker_text(active_mode: str | None = None) -> str:
+    """Nội dung text màn hình Chọn Mode."""
+    curr = active_mode if active_mode else "Tất cả"
+    return (
+        f"🎯 <b>CHỌN MODE NỘI DUNG MONG MUỐN</b>\n"
+        f"<i>(Hiện tại đang lọc: <b>{curr}</b>)</i>\n\n"
+        f"Vui lòng chọn 1 Mode bên dưới để lọc danh sách/gợi ý 👇"
+    )
+
+
+def render_mode_picker_keyboard(source: str = "sug") -> dict:
+    """
+    Bàn phím chọn Mode:
+    - Hàng 1: Tất cả các Mode
+    - Hàng 2: Product & Sales
+    - Hàng 3: Social Proof & Educational
+    - Hàng 4: Pain & Relief & Authority
+    - Hàng 5: Lifestyle
+    - Hàng 6: Quay lại
+    """
+    return {
+        "inline_keyboard": [
+            [
+                {"text": "🌐 Tất cả các Mode", "callback_data": f"tsm_set_all_{source}"},
+            ],
+            [
+                {"text": "📦 Product",      "callback_data": f"tsm_set_Product_{source}"},
+                {"text": "💰 Sales",        "callback_data": f"tsm_set_Sales_{source}"},
+            ],
+            [
+                {"text": "🚚 Social Proof", "callback_data": f"tsm_set_Social Proof_{source}"},
+                {"text": "🎓 Educational",  "callback_data": f"tsm_set_Educational_{source}"},
+            ],
+            [
+                {"text": "🛡️ Pain & Relief", "callback_data": f"tsm_set_Pain & Relief_{source}"},
+                {"text": "🏭 Authority",     "callback_data": f"tsm_set_Authority_{source}"},
+            ],
+            [
+                {"text": "✨ Lifestyle",     "callback_data": f"tsm_set_Lifestyle_{source}"},
+            ],
+            [
+                {"text": "◀️ Quay lại",      "callback_data": f"tsm_back_{source}"},
+            ]
+        ]
+    }
+
+
+def render_list_text(page: int, page_topics: list[dict], all_topics: list[dict], active_mode: str | None = None) -> str:
     """Nội dung text màn hình Danh sách chủ đề."""
-    total_pages = (len(all_topics) + TOPICS_PER_PAGE - 1) // TOPICS_PER_PAGE
-    lines = [f"📋 <b>DANH SÁCH CHỦ ĐỀ</b> (Trang {page}/{total_pages})\n"]
+    total_pages = max(1, (len(all_topics) + TOPICS_PER_PAGE - 1) // TOPICS_PER_PAGE)
+    mode_str = f" [Mode: <b>{active_mode}</b>]" if active_mode else " [Tất cả Mode]"
+    lines = [f"📋 <b>DANH SÁCH CHỦ ĐỀ</b>{mode_str} (Trang {page}/{total_pages} - {len(all_topics)} chủ đề)\n"]
+
+    if not page_topics:
+        lines.append("<i>(Không có chủ đề nào trong danh mục này)</i>")
+        return "\n".join(lines)
 
     start_idx = (page - 1) * TOPICS_PER_PAGE
     for i, topic in enumerate(page_topics, start=1):
         emoji = STATUS_EMOJI.get(topic["trang_thai"], "⬜")
         title = topic["chu_de"]
-        if len(title) > 50:
-            title = title[:47] + "..."
+        if len(title) > 42:
+            title = title[:39] + "..."
         date_str = ""
         if topic["trang_thai"] == "da_dang" and topic.get("lan_cuoi_dang"):
             try:
                 d = datetime.strptime(topic["lan_cuoi_dang"], "%Y-%m-%d")
-                date_str = f"  [{d.strftime('%d/%m')}]"
+                date_str = f" [{d.strftime('%d/%m')}]"
             except Exception:
                 pass
-        lines.append(f"{i + start_idx}. {emoji} {title}{date_str}")
+        mode_tag = f" <i>({topic.get('mode', '')})</i>" if not active_mode else ""
+        lines.append(f"{i + start_idx}. {emoji} {title}{mode_tag}{date_str}")
 
     return "\n".join(lines)
 
 
-def render_list_keyboard(page: int, total_topics: int, page_topics: list[dict]) -> dict:
+def render_list_keyboard(page: int, total_topics: int, page_topics: list[dict], active_mode: str | None = None) -> dict:
     """
     Bàn phím cho màn hình Danh sách chủ đề:
-    Tách 10 chủ đề thành các hàng 5 nút để Telegram client không bị cắt bớt nút (Telegram giới hạn max 8 nút/hàng).
-    - Hàng 1: Toggle status (bài 1 -> 5)
-    - Hàng 2: Toggle status (bài 6 -> 10)
-    - Hàng 3: Chọn viết bài (bài 1 -> 5)
-    - Hàng 4: Chọn viết bài (bài 6 -> 10)
+    - Hàng 1 & 2: Toggle status
+    - Hàng 3 & 4: Chọn viết bài
     - Hàng 5: Phân trang
-    - Hàng 6: Actions (Reset + Quay lại)
+    - Hàng 6: Actions (Đổi Mode + Reset + Gợi ý)
     """
-    total_pages = (total_topics + TOPICS_PER_PAGE - 1) // TOPICS_PER_PAGE
+    total_pages = max(1, (total_topics + TOPICS_PER_PAGE - 1) // TOPICS_PER_PAGE)
 
     toggle_row_1 = []
     toggle_row_2 = []
@@ -111,14 +176,15 @@ def render_list_keyboard(page: int, total_topics: int, page_topics: list[dict]) 
     nav_row = []
     if page > 1:
         nav_row.append({"text": "◀️ Trước", "callback_data": f"tsl_{page - 1}"})
-    nav_row.append({"text": f"📄 {page}/{total_pages}", "callback_data": "tsl_1"})
+    nav_row.append({"text": f"📄 {page}/{total_pages}", "callback_data": f"tsl_{page}"})
     if page < total_pages:
         nav_row.append({"text": "Sau ▶️", "callback_data": f"tsl_{page + 1}"})
 
-    # Actions
+    # Actions (Có thêm nút Đổi Mode)
     action_row = [
-        {"text": "🔄 Reset tất cả",   "callback_data": "tsr"},
-        {"text": "◀️ Gợi ý chủ đề",  "callback_data": "tsb"},
+        {"text": "🏷️ Đổi Mode",      "callback_data": "tsm_list"},
+        {"text": "🔄 Reset",         "callback_data": "tsr"},
+        {"text": "◀️ Gợi ý",         "callback_data": "tsb"},
     ]
 
     inline_keyboard = []
@@ -130,7 +196,8 @@ def render_list_keyboard(page: int, total_topics: int, page_topics: list[dict]) 
         inline_keyboard.append(write_row_1)
     if write_row_2:
         inline_keyboard.append(write_row_2)
-    inline_keyboard.append(nav_row)
+    if nav_row:
+        inline_keyboard.append(nav_row)
     inline_keyboard.append(action_row)
 
     return {"inline_keyboard": inline_keyboard}

@@ -17,10 +17,14 @@ STATUS_CYCLE = {
 }
 
 
-def read_topics_csv() -> list[dict]:
-    """Đọc toàn bộ topics.csv thành danh sách dictionary."""
+def read_topics_csv(mode: str | None = None) -> list[dict]:
+    """Đọc toàn bộ topics.csv thành danh sách dictionary (có thể lọc theo mode)."""
     with open(TOPICS_CSV, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+        rows = list(csv.DictReader(f))
+    if mode:
+        m_lower = mode.strip().lower()
+        rows = [r for r in rows if r.get("mode", "").strip().lower() == m_lower]
+    return rows
 
 
 def write_topics_csv(rows: list[dict]) -> None:
@@ -69,14 +73,14 @@ def reset_all_topics() -> None:
     write_topics_csv(rows)
 
 
-def suggest_topic(exclude_ids: list[int] | None = None) -> dict | None:
+def suggest_topic(exclude_ids: list[int] | None = None, mode: str | None = None) -> dict | None:
     """
-    Gợi ý 1 chủ đề theo logic ưu tiên:
+    Gợi ý 1 chủ đề theo logic ưu tiên (có thể lọc theo mode):
     1. chua_dang (bỏ qua exclude_ids và tam_hoan)
     2. da_dang lâu nhất (bỏ qua exclude_ids và tam_hoan)
     """
     exclude_ids = exclude_ids or []
-    rows = read_topics_csv()
+    rows = read_topics_csv(mode=mode)
 
     chua_dang = [
         r for r in rows
