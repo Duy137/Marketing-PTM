@@ -105,7 +105,7 @@ def write_content(state: PostState) -> PostState:
         f"Sản phẩm: {state['san_pham']}\n"
         f"Chủ đề bài viết: {state['topic_title']}\n\n"
         f"Hãy viết bài fanpage hoàn chỉnh theo đúng mode và chủ đề trên. "
-        f"Nhớ bao gồm đầy đủ CTA và 2 địa chỉ xưởng ở cuối bài.\n\n"
+        f"Tuân thủ đúng quy tắc và cấu trúc của mode đã được định nghĩa trong System Prompt.\n\n"
         f"YÊU CẦU ĐỊNH DẠNG OUTPUT (bắt buộc tuân thủ):\n"
         f"Output dành cho Facebook — nền tảng chỉ hiển thị plain text và emoji, "
         f"không render Markdown. Vì vậy:\n"

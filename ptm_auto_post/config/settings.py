@@ -105,6 +105,57 @@ MEDIA_FOLDER_MAP: dict[str, Path] = {
     "giao_hang":               MEDIA_DIR / "giao_hang",
 }
 
+# ==============================================
+# PHÂN LOẠI ẢNH THEO NỘI DUNG (IMAGE TAGS)
+# ==============================================
+# Hệ thống nhận diện loại ảnh dựa trên TÊN FILE.
+# Quy tắc đặt tên: nếu tên file chứa một trong các từ khoá dưới đây
+# → ảnh đó được phân vào loại tương ứng.
+# Ảnh không chứa bất kỳ từ khoá nào → mặc định là ảnh sản phẩm hoàn thiện (studio/catalogue).
+#
+# Các loại ảnh hiện tại:
+#
+#   [KHÔNG TAG]   — Ảnh sản phẩm hoàn thiện (chụp đẹp, background trắng/studio)
+#                   Phù hợp: Product, Lifestyle, Sales, Pain & Relief
+#
+#   tai_xuong     — Không gian xưởng, máy móc, thợ làm việc, kho nguyên liệu
+#                   Phù hợp: Authority, Behind the Scenes
+#
+#   gia_cong      — Quá trình gia công đang diễn ra (cắt, chấn, hàn, phay...)
+#                   Phù hợp: Authority, Educational
+#
+#   thi_cong      — Sản phẩm đang được lắp đặt tại công trình
+#                   Phù hợp: Case Study, Educational
+#
+#   ung_dung      — Sản phẩm đã hoàn thiện trong bối cảnh thực tế (thấy cả không gian/công trình)
+#                   Phù hợp: Case Study, Product, Pain & Relief
+#
+#   van_chuyen    — Đóng gói, xe tải, giao hàng, kho thành phẩm
+#                   Phù hợp: Social Proof
+#
+# Cách đặt tên file: dùng "_" phân cách, đặt tag ở đầu tên.
+# Ví dụ: "tai_xuong_01.jpg", "gia_cong_phay_ranh.jpg", "ung_dung_phong_bep.jpg"
+# Ảnh sản phẩm studio giữ nguyên tên random: "IMG_20240315_102233.jpg"
+IMAGE_TAGS: list[str] = ["tai_xuong", "gia_cong", "thi_cong", "ung_dung", "van_chuyen"]
+
+# ==============================================
+# FEATURE FLAGS — BẬT / TẮT CÁC TÍNH NĂNG AI
+# ==============================================
+# Tất cả tính năng dùng LLM được kiểm soát tập trung tại đây.
+# Đổi True ↔ False để bật/tắt — không cần sửa code ở chỗ khác.
+
+# LLM_CHOOSE_IMAGE_TYPE
+# ─────────────────────
+# True  → LLM đọc nội dung bài vừa viết, tự quyết định nên dùng bao nhiêu ảnh
+#          của từng loại (hoàn thiện / tai_xuong / gia_cong / thi_cong / ung_dung / van_chuyen).
+#          Chuẩn xác nhất vì LLM hiểu ngữ cảnh thực của bài.
+#          Chi phí: thêm ~1 lần gọi LLM nhỏ (gọi structured output, rất nhanh).
+#
+# False → Chọn ngẫu nhiên (random) toàn bộ pool ảnh của sản phẩm, bất kể loại.
+#          Nhanh hơn, không tốn thêm token.
+#          Phù hợp khi kho ảnh chưa được đặt tên theo tag hệ thống.
+LLM_CHOOSE_IMAGE_TYPE: bool = True
+
 
 def validate_settings() -> list[str]:
     """Kiểm tra xem các API keys quan trọng có bị thiếu không."""
