@@ -145,11 +145,11 @@ def send_for_approval(state: PostState) -> PostState:
                 print("[approver] User bấm: CÙNG CHỦ ĐỀ")
                 return {**state, "approval_status": "regenerate_same"}
 
-            elif action == "regen_new":
+            elif action == "back_to_topic":
                 current_text = render_approval_text(state)
-                edit_message(msg_id, f"{current_text}\n\n🎲 <b>ĐỔI CHỦ ĐỀ KHÁC</b>", {"inline_keyboard": []})
-                print("[approver] User bấm: CHỦ ĐỀ KHÁC")
-                return {**state, "approval_status": "regenerate_new"}
+                edit_message(msg_id, f"{current_text}\n\n⬅️ <b>QUAY LẠI CHỌN CHỦ ĐỀ</b>", {"inline_keyboard": []})
+                print("[approver] User bấm: CHỌN LẠI TOPIC")
+                return {**state, "approval_status": "back_to_topic"}
 
             elif action == "upload_img":
                 print("[approver] User bấm: GỬI ẢNH")

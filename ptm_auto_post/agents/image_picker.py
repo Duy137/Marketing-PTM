@@ -7,6 +7,7 @@ Hỗ trợ 2 chế độ, cấu hình qua settings.py:
         → LLM đọc nội dung bài vừa viết, quyết định phân bổ số lượng ảnh
           theo từng loại (hoàn thiện / tai_xuong / gia_cong / thi_cong / ung_dung / van_chuyen).
           LLM trả về JSON: {"thuong": 1, "tai_xuong": 0, "gia_cong": 1, ...}
+          Dùng LLM profile 'image_picker' (model nhẹ/rẻ), cấu hình trong .env.
 
     LLM_CHOOSE_IMAGE_TYPE = False
         → Chọn ngẫu nhiên toàn bộ pool ảnh của sản phẩm, bất kể loại.
@@ -20,14 +21,14 @@ import json
 import random
 from pathlib import Path
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 
 from config.settings import (
-    GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY,
-    LLM_PROVIDER, LLM_MODEL,
     MEDIA_FOLDER_MAP, IMAGES_PER_POST,
     IMAGE_TAGS, LLM_CHOOSE_IMAGE_TYPE,
+    LLM_IMAGE_PICKER_PROVIDER, LLM_IMAGE_PICKER_MODEL,
 )
+from shared.llm_factory import create_llm_for_task
 from agents.state import PostState
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -127,10 +128,9 @@ def _ask_llm_for_allocation(
     total: int,
 ) -> dict[str, int]:
     """
-    Gọi LLM nhỏ để phân bổ số lượng ảnh theo loại dựa trên nội dung bài.
-    Trả về dict allocation, ví dụ: {"thuong": 2, "tai_xuong": 0, "gia_cong": 1, ...}
+    Gọi LLM (profile 'image_picker' — model rẻ) để phân bổ số lượng ảnh theo loại.
+    Trả về dict allocation, ví dụ: {"thuong": 2, "gia_cong": 1, "tai_xuong": 0, ...}
     """
-    # Tóm tắt kho ảnh có sẵn để LLM biết và không yêu cầu loại trống
     available_summary = {
         tag: len(pool)
         for tag, pool in buckets.items()
@@ -150,7 +150,7 @@ Kho ảnh hiện có (tên loại: số lượng ảnh):
 Giải thích các loại ảnh:
 - "thuong": Ảnh sản phẩm hoàn thiện, chụp đẹp (studio/catalogue)
 - "tai_xuong": Không gian xưởng, máy móc, thợ làm việc
-- "gia_cong": Quá trình gia công (cắt, chấn, hàn, phay...)
+- "gia_cong": Quá trình gia công (đốt, chấn, hàn, phay...)
 - "thi_cong": Sản phẩm đang lắp đặt tại công trình
 - "ung_dung": Sản phẩm hoàn thiện trong bối cảnh thực tế (có không gian công trình)
 - "van_chuyen": Đóng gói, giao hàng, kho hàng
@@ -163,31 +163,13 @@ Nhiệm vụ: Chọn tổng cộng {total} ảnh. Phân bổ số lượng ảnh
 Trả về JSON duy nhất (không giải thích gì thêm):
 {{"thuong": <số>, "tai_xuong": <số>, "gia_cong": <số>, "thi_cong": <số>, "ung_dung": <số>, "van_chuyen": <số>}}"""
 
-    # Tạo LLM nhỏ (dùng cùng provider để tránh phải cấu hình thêm)
-    if LLM_PROVIDER == "gemini":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        llm = ChatGoogleGenerativeAI(
-            model=LLM_MODEL,
-            google_api_key=GEMINI_API_KEY,
-            temperature=0,
-        )
-    elif LLM_PROVIDER == "openai":
-        from langchain_openai import ChatOpenAI
-        llm = ChatOpenAI(model=LLM_MODEL, api_key=OPENAI_API_KEY, temperature=0)
-    elif LLM_PROVIDER == "claude":
-        from langchain_anthropic import ChatAnthropic
-        llm = ChatAnthropic(model=LLM_MODEL, api_key=ANTHROPIC_API_KEY, temperature=0)
-    else:
-        raise ValueError(f"LLM_PROVIDER không hợp lệ: '{LLM_PROVIDER}'")
-
     try:
+        llm = create_llm_for_task("image_picker")
         response = llm.invoke([HumanMessage(content=prompt)])
         raw = response.content.strip()
-        # Trích xuất JSON từ response (đề phòng LLM thêm text thừa)
         start = raw.find("{")
         end = raw.rfind("}") + 1
         allocation = json.loads(raw[start:end])
-        # Đảm bảo tất cả keys đều tồn tại
         for tag in list(buckets.keys()):
             allocation.setdefault(tag, 0)
         print(f"[image_picker] LLM phân bổ ảnh: {allocation}")

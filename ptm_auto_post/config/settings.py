@@ -67,10 +67,45 @@ def load_facebook_pages() -> list[FacebookPage]:
 FACEBOOK_PAGES: list[FacebookPage] = load_facebook_pages()
 
 # ==============================================
-# CÀI ĐẶT LLM
+# CÀI ĐẶT LLM — GLOBAL DEFAULT
 # ==============================================
+# Dùng làm fallback cho tất cả các task không có cấu hình riêng.
+# Nên chọn model tốt nhất, vì đây là default cho Content Writer.
 LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini").lower()
-LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-2.0-flash")
+LLM_MODEL:    str = os.getenv("LLM_MODEL", "gemini-2.0-flash")
+
+# ==============================================
+# CÀI ĐẶT LLM — PER-TASK PROFILES
+# ==============================================
+# Mỗi task LLM có profile riêng: provider + model + temperature.
+# Nếu biến môi trường không được set → tự động fallback về global default.
+#
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ HƯỚNG DẪN THÊM TASK MỚI:                                               │
+# │ 1. Thêm 3 dòng os.getenv bên dưới theo đúng pattern                    │
+# │ 2. Thêm biến tương ứng vào file .env                                   │
+# │ 3. Trong agent, gọi: llm = create_llm_for_task("ten_task")             │
+# │    → hàm create_llm_for_task() được định nghĩa trong llm_factory.py    │
+# └─────────────────────────────────────────────────────────────────────────┘
+#
+# Lưu ý về nhiệt độ (temperature):
+#   0.0 = Hoàn toàn deterministc, lý tưởng cho classification / structured output
+#   0.7 = Cân bằng, lý tưởng cho viết nội dung sáng tạo
+#   1.0 = Rất sáng tạo, không ổn định — ít dùng trong production
+
+# --- Task: CONTENT_WRITER (viết bài fanpage) ---
+# Cần model mạnh nhất để đảm bảo chất lượng content.
+# Gợi ý: gpt-4o | gemini-2.0-flash | claude-3-5-sonnet-20241022
+LLM_CONTENT_WRITER_PROVIDER: str = os.getenv("LLM_CONTENT_WRITER_PROVIDER", LLM_PROVIDER)
+LLM_CONTENT_WRITER_MODEL:    str = os.getenv("LLM_CONTENT_WRITER_MODEL",    LLM_MODEL)
+LLM_CONTENT_WRITER_TEMP:    float = float(os.getenv("LLM_CONTENT_WRITER_TEMP", "0.7"))
+
+# --- Task: IMAGE_PICKER (chọn loại ảnh phù hợp nội dung bài) ---
+# Chỉ cần phân loại đơn giản → dùng model rẻ nhất.
+# Gợi ý: gpt-4o-mini | gemini-2.0-flash-lite | claude-3-haiku-20240307
+LLM_IMAGE_PICKER_PROVIDER: str = os.getenv("LLM_IMAGE_PICKER_PROVIDER", LLM_PROVIDER)
+LLM_IMAGE_PICKER_MODEL:    str = os.getenv("LLM_IMAGE_PICKER_MODEL",    LLM_MODEL)
+LLM_IMAGE_PICKER_TEMP:    float = float(os.getenv("LLM_IMAGE_PICKER_TEMP", "0.0"))
 
 # ==============================================
 # CÀI ĐẶT HÌNH ẢNH

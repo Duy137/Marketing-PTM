@@ -31,6 +31,29 @@ AVAILABLE_MODES = [
 
 
 # ==============================================
+# VIEW: MAIN MENU
+# ==============================================
+
+def render_main_menu_text() -> str:
+    """Nội dung text màn hình Main Menu."""
+    return (
+        "🏠 <b>PTM AUTO POST — MENU CHÍNH</b>\n\n"
+        "Chọn thao tác bên dưới 👇"
+    )
+
+
+def render_main_menu_keyboard() -> dict:
+    """Nút bấm màn hình Main Menu."""
+    return {
+        "inline_keyboard": [
+            [
+                {"text": "✍️ Viết bài", "callback_data": "menu_write"},
+            ]
+        ]
+    }
+
+
+# ==============================================
 # VIEW: CHỌN CHỦ ĐỀ (TOPIC SELECTION)
 # ==============================================
 
@@ -56,6 +79,9 @@ def render_suggestion_keyboard() -> dict:
             [
                 {"text": "🎯 Đổi Mode",     "callback_data": "tsm_sug"},
                 {"text": "📋 Xem danh sách", "callback_data": "tsl_1"},
+            ],
+            [
+                {"text": "🏠 Về menu",      "callback_data": "menu_home"},
             ]
         ]
     }
@@ -234,15 +260,15 @@ def render_approval_keyboard() -> dict:
     return {
         "inline_keyboard": [
             [
-                {"text": "✅ Duyệt đăng",    "callback_data": "approve"},
-                {"text": "🔄 Cùng chủ đề",  "callback_data": "regen_same"},
+                {"text": "✅ Duyệt đăng",       "callback_data": "approve"},
+                {"text": "🔄 Cùng chủ đề",     "callback_data": "regen_same"},
             ],
             [
-                {"text": "🎲 Chủ đề khác",  "callback_data": "regen_new"},
-                {"text": "🖼️ Gửi ảnh",      "callback_data": "upload_img"},
+                {"text": "⬅️ Chọn lại topic",   "callback_data": "back_to_topic"},
+                {"text": "🖼️ Gửi ảnh",         "callback_data": "upload_img"},
             ],
             [
-                {"text": "❌ Bỏ qua",       "callback_data": "reject"},
+                {"text": "❌ Bỏ qua",           "callback_data": "reject"},
             ]
         ]
     }

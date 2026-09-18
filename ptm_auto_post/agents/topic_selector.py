@@ -27,6 +27,8 @@ from views.telegram_views import (
     render_mode_picker_keyboard,
     render_list_text,
     render_list_keyboard,
+    render_main_menu_text,
+    render_main_menu_keyboard,
     TOPICS_PER_PAGE,
 )
 from services.telegram_service import (
@@ -42,7 +44,8 @@ SELECTION_TIMEOUT = 3600  # 1 giờ timeout
 def select_topic_interactively() -> int | None:
     """
     Giao tiếp với user qua Telegram để chọn chủ đề (hỗ trợ lọc theo Mode).
-    Trả về topic_id đã được user xác nhận, hoặc None nếu timeout/lỗi.
+    Trả về topic_id đã được user xác nhận, hoặc None nếu timeout/lỗi,
+    hoặc cỗi giá trị đặc biệt "BACK_TO_MENU" nếu user bấm 🏠 Về menu.
     """
     q = register_topic_selection_queue()
 
@@ -63,13 +66,19 @@ def select_topic_interactively() -> int | None:
 
         current_page = 1
 
+        _elapsed = 0.0
+        _poll = 1.0
+
         while True:
             try:
-                callback = q.get(timeout=SELECTION_TIMEOUT)
+                callback = q.get(timeout=_poll)
             except queue.Empty:
-                print("[topic_selector] Timeout — không có phản hồi từ user.")
-                delete_message(msg_id)
-                return None
+                _elapsed += _poll
+                if _elapsed >= SELECTION_TIMEOUT:
+                    print("[topic_selector] Timeout — không có phản hồi từ user.")
+                    delete_message(msg_id)
+                    return None
+                continue  # Ctrl+C sẽ được nhận tại đây (~1 giây)
 
             cb_id = callback["id"]
             cb_data = callback.get("data", "")
@@ -77,8 +86,14 @@ def select_topic_interactively() -> int | None:
             # Tắt spinner NGAY (< 50ms)
             answer_callback(cb_id)
 
+            # --- [🏠 Về menu chính] ---
+            if cb_data == "menu_home":
+                edit_message(msg_id, "🏠 <b>Quay về Menu chính...</b>", {"inline_keyboard": []})
+                print("[topic_selector] User bấm: VỀ MENU")
+                return "BACK_TO_MENU"  # type: ignore[return-value]
+
             # --- [✅ Viết bài này] ---
-            if cb_data == "tsc":
+            elif cb_data == "tsc":
                 topic_id = int(current_topic["id"])
                 edit_message(msg_id, f"✅ <b>Đã chọn chủ đề:</b> {current_topic['chu_de']} <i>({current_topic.get('mode', '')})</i>", {"inline_keyboard": []})
                 print(f"[topic_selector] User xác nhận topic #{topic_id}: {current_topic['chu_de']}")

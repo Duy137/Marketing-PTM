@@ -1,64 +1,19 @@
 """
 content_writer.py — Node 2: Gọi LLM để viết bài đăng fanpage.
 
-Hỗ trợ 3 nhà cung cấp AI, cấu hình qua file .env:
-    LLM_PROVIDER=gemini  →  Google Gemini
-    LLM_PROVIDER=openai  →  OpenAI GPT
-    LLM_PROVIDER=claude  →  Anthropic Claude
+Dùng LLM profile 'content_writer' được cấu hình trong settings.py / .env.
+Thay đổi model/provider: Sửa biến LLM_CONTENT_WRITER_* trong .env.
 
 Nhận vào: chủ đề + mode từ state
 Trả về: bài viết hoàn chỉnh đã có CTA và địa chỉ đầy đủ
 """
 
-from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from config.settings import (
-    LLM_PROVIDER, LLM_MODEL,
-    GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY,
-    SYSTEM_PROMPT_FILE,
-)
+from config.settings import SYSTEM_PROMPT_FILE, LLM_CONTENT_WRITER_PROVIDER, LLM_CONTENT_WRITER_MODEL
+from shared.llm_factory import create_llm_for_task
 from agents.state import PostState
 
-
-# ==============================================
-# FACTORY: Tạo LLM phù hợp theo cấu hình .env
-# ==============================================
-
-def _create_llm() -> BaseChatModel:
-    """
-    Tạo và trả về LLM tương ứng với LLM_PROVIDER trong .env.
-    Thêm provider mới chỉ cần thêm 1 nhánh elif ở đây.
-    """
-    if LLM_PROVIDER == "gemini":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(
-            model=LLM_MODEL,
-            google_api_key=GEMINI_API_KEY,
-            temperature=0.7,
-        )
-
-    elif LLM_PROVIDER == "openai":
-        from langchain_openai import ChatOpenAI
-        return ChatOpenAI(
-            model=LLM_MODEL,
-            api_key=OPENAI_API_KEY,
-            temperature=0.7,
-        )
-
-    elif LLM_PROVIDER == "claude":
-        from langchain_anthropic import ChatAnthropic
-        return ChatAnthropic(
-            model=LLM_MODEL,
-            api_key=ANTHROPIC_API_KEY,
-            temperature=0.7,
-        )
-
-    else:
-        raise ValueError(
-            f"LLM_PROVIDER không hợp lệ: '{LLM_PROVIDER}'. "
-            f"Chỉ nhận: 'gemini', 'openai', 'claude'"
-        )
 
 
 def _load_system_prompt() -> str:
@@ -93,12 +48,12 @@ def _strip_markdown(text: str) -> str:
 
 def write_content(state: PostState) -> PostState:
     """
-    Gọi LLM (provider cấu hình trong .env) để viết bài fanpage.
+    Gọi LLM (profile 'content_writer' trong settings.py) để viết bài fanpage.
     """
-    print(f"[content_writer] Dùng {LLM_PROVIDER.upper()} ({LLM_MODEL})")
+    print(f"[content_writer] Dùng {LLM_CONTENT_WRITER_PROVIDER.upper()} ({LLM_CONTENT_WRITER_MODEL})")
     print(f"[content_writer] Đang viết bài: [{state['mode']}] {state['topic_title']}")
 
-    llm = _create_llm()
+    llm = create_llm_for_task("content_writer")
 
     user_prompt = (
         f"Mode: {state['mode']}\n"
