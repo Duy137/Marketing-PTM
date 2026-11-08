@@ -15,7 +15,7 @@ venv/
 env/
 ENV/
 
-# Heavy Media Assets & Image Files
+# Heavy Media Assets & Image Files (Không đẩy lên Git, dùng Railway Volume)
 media/
 *.png
 *.jpg

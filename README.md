@@ -125,11 +125,9 @@ flowchart TB
     subgraph HOOKS["🔌 Event-Driven Plugin Bus (shared/hooks.py)"]
         BUS{"⚡ Event Bus\nfire(event, payload)"}
         P1["📊 Plugin: fb_insights\n(Logs post metadata & joins Graph API metrics)"]
-        P2["📰 Plugin: rss_reader\n(Fetches Real Estate / B2B News digest)"]
         
         BUS -->|on_post_published| P1
         BUS -->|on_report_requested| P1
-        BUS -->|on_session_start| P2
     end
 
     TS -->|Trigger Graph Execution| N1
@@ -273,8 +271,7 @@ Marketing PTM/                              # 🏛️ Root Monorepo
 │   │   └── publisher.py                    # Phase 2 - Node 6: Meta Graph API dispatcher
 │   ├── plugins/                            # Hot-Pluggable Extensions
 │   │   ├── __init__.py                     # Active plugin registry (import toggles)
-│   │   ├── fb_insights/                    # Metadata logger + Graph API JOIN + LLM digest
-│   │   └── rss_reader/                     # Industry news ingestion (Cafef BĐS, VnExpress)
+│   │   └── fb_insights/                    # Metadata logger + Graph API JOIN + LLM digest
 │   ├── services/                           # Stateless API & Storage Services
 │   │   ├── telegram_service.py             # Telegram Bot API wrapper
 │   │   ├── topic_service.py                # CSV database manager (CRUD, pagination)
@@ -376,7 +373,7 @@ gantt
     section Phase 1: Core Foundation
     LangGraph Pipeline & HITL Telegram       :done,    des1, 2026-07-01, 2026-08-15
     LLM Factory & Hook Plugin Architecture   :done,    des2, 2026-08-16, 2026-09-15
-    FB Insights & RSS Ingestion Plugins       :done,    des3, 2026-09-16, 2026-09-22
+    FB Insights Analytics Plugin             :done,    des3, 2026-09-16, 2026-09-22
     section Phase 2: Intelligence Loop
     Google Ads Search Term Ingestion         :active,  des4, 2026-09-23, 2026-10-15
     Automated Weekly Topic Strategist        :         des5, 2026-10-16, 2026-11-05

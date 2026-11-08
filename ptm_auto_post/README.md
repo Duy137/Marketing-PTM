@@ -62,11 +62,9 @@ flowchart TB
     subgraph HOOKS["🔌 Event-Driven Plugin Bus (shared/hooks.py)"]
         BUS{"⚡ Event Bus\nfire(event, payload)"}
         P1["📊 Plugin: fb_insights\n(Logs post metadata & joins Graph API metrics)"]
-        P2["📰 Plugin: rss_reader\n(Fetches Real Estate / B2B News digest)"]
         
         BUS -->|on_post_published| P1
         BUS -->|on_report_requested| P1
-        BUS -->|on_session_start| P2
     end
 
     TS -->|Trigger Graph Execution| N1
@@ -140,8 +138,7 @@ ptm_auto_post/
 │   └── publisher.py            # Phase 2 - Node 6: Facebook Graph API dispatcher
 ├── plugins/                    # Modular Extensibility Layer
 │   ├── __init__.py             # Active plugin registry (toggle via imports)
-│   ├── fb_insights/            # Analytics logging + Graph API JOIN + LLM digest
-│   └── rss_reader/             # Industry news ingestion (Cafef BĐS, VnExpress)
+│   └── fb_insights/            # Analytics logging + Graph API JOIN + LLM digest
 ├── services/                   # Stateless I/O & API Wrappers
 │   ├── telegram_service.py     # Telegram Bot API wrapper (HTML formatting, keyboards)
 │   ├── topic_service.py        # CSV database engine (Pagination, state toggle)
@@ -174,7 +171,7 @@ ptm_auto_post/
 | **API & Webhook** | `FastAPI`, `Uvicorn` | High-throughput asynchronous webhook ingress |
 | **Ingress Tunnel** | `Cloudflare Tunnel (cloudflared)` | Secure public webhook URL without public IP exposure |
 | **External APIs** | `Meta Facebook Graph API v19.0`, `Telegram Bot API` | Multi-page publishing & interactive HITL interface |
-| **Data & RSS** | `pandas`, `feedparser`, `requests` | CSV data persistence & external industry news syndication |
+| **Data & Storage** | `pandas`, `requests` | CSV data persistence & Facebook Graph API requests |
 
 ---
 
@@ -242,8 +239,7 @@ python main.py
 Upon startup, the engine will:
 1. Initialize the **Cloudflare Tunnel** and expose FastAPI on an ephemeral `https://*.trycloudflare.com` URL.
 2. Register the webhook with Telegram API automatically.
-3. Fire `on_session_start` plugins (e.g. RSS reader digest).
-4. Render the interactive **Main Menu** to the authorized Telegram Chat.
+3. Render the interactive **Main Menu** to the authorized Telegram Chat.
 
 ---
 

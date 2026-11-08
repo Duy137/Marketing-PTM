@@ -7,4 +7,8 @@ python-dotenv
 python-telegram-bot
 requests
 pandas
+fastapi
+uvicorn
+pillow
+
 

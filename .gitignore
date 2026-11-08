@@ -11,7 +11,7 @@ __pycache__/
 venv/
 .venv/
 env/
-# 4. Thư mục Media & Hình ảnh Render
+# 4. Thư mục Media & Hình ảnh Render (Dùng Volume trên Cloud, không push lên Git)
 AI Gen Photos/
 ptm_auto_post/media/
 *.png
@@ -21,6 +21,7 @@ ptm_auto_post/media/
 # 5. Dữ liệu phân tích & Báo cáo thô (Google Ads)
 google_ads_analysis/data/
 *.csv
+!ptm_auto_post/data/*.csv
 *.xlsx
 # 6. File Logs & Lịch sử chạy lệnh
 logs/

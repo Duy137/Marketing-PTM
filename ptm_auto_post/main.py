@@ -38,8 +38,11 @@ import requests
 import subprocess
 import re
 import time
+import os
 from config.settings import TELEGRAM_BOT_TOKEN
 from services.telegram_service import answer_callback
+from shared.hooks import fire
+import plugins  # noqa: F401 — tự động đăng ký tất cả plugin đang bật
 
 
 # ==============================================
@@ -156,23 +159,36 @@ def run_cloudflared() -> str | None:
         return None
 
 def setup_webhook_server():
-    """Tự động chạy Tunnel, Đăng ký Webhook và chạy FastAPI."""
-    # 1. Khởi động FastAPI server trước
+    """Tự động chạy Webhook Server (FastAPI) và đăng ký Webhook với Telegram.
+    
+    Hỗ trợ cả 2 môi trường:
+    - Cloud (Railway): Có biến WEBHOOK_URL hoặc PORT -> dùng host 0.0.0.0, đăng ký trực tiếp.
+    - Local (Windows): Không có WEBHOOK_URL -> chạy uvicorn và tự động mở cloudflared.exe.
+    """
+    port = int(os.getenv("PORT", 8888))
+    env_webhook_url = os.getenv("WEBHOOK_URL", "").strip().rstrip("/")
+
+    # 1. Khởi động FastAPI server
+    # Dùng host="0.0.0.0" để hỗ trợ cả container cloud và truy cập mạng nội bộ
     def _run_server():
-        uvicorn.run("api.webhook_server:app", host="127.0.0.1", port=8888, log_level="error")
+        uvicorn.run("api.webhook_server:app", host="0.0.0.0", port=port, log_level="error")
     t = threading.Thread(target=_run_server, daemon=True)
     t.start()
     time.sleep(1)  # Chờ server sẵn sàng
 
-    # 2. Khởi động cloudflared lấy URL
-    webhook_url = run_cloudflared()
-    if not webhook_url:
-        return False
+    # 2. Xác định webhook URL
+    if env_webhook_url:
+        print(f"🌐 Môi trường Cloud/Cấu hình sẵn: Sử dụng WEBHOOK_URL={env_webhook_url}")
+        webhook_url = env_webhook_url
+    else:
+        # Chế độ local: Chạy cloudflared
+        webhook_url = run_cloudflared()
+        if not webhook_url:
+            return False
+        print("⏳ Chờ DNS propagate...")
+        time.sleep(5)  # DNS của Cloudflare cần vài giây để đi vào hệ thống
 
-    # 3. Chờ DNS propagate rồi retry đăng ký (tối đa 5 lần)
-    print("⏳ Chờ DNS propagate...")
-    time.sleep(5)  # DNS của Cloudflare cần vài giây để đi vào hệ thống
-
+    # 3. Đăng ký Webhook với Telegram (retry tối đa 5 lần)
     for attempt in range(1, 6):
         print(f"🔗 Đăng ký Webhook (lần {attempt}/5): {webhook_url}/webhook")
         try:
@@ -282,6 +298,7 @@ def main():
     while True:
         # ── BƯỚC 1: Hiển thị Main Menu ──────────────────────────────────────
         print("\n[session] Hiển thị Main Menu")
+        fire("on_session_start")  # Plugin: RSS feed digest buổi sáng (cached 6h)
         menu_msg_id = send_main_menu()
         if not menu_msg_id:
             print("[session] Không gửi được Main Menu. Thử lại sau 5 giây.")
@@ -292,6 +309,10 @@ def main():
 
         if action == "menu_write":
             pass  # Tiếp tục xuống bước chọn topic
+        elif action == "menu_report":
+            print("[session] User yêu cầu báo cáo analytics.")
+            fire("on_report_requested", {"days": 30})  # Plugin: fetch + phân tích
+            continue  # Quay lại hiển thị Main Menu
         elif action == "timeout":
             print("[session] Main Menu timeout (24h). Reset.")
             continue
@@ -338,6 +359,7 @@ def main():
         if final_state.get("facebook_post_id"):
             print(f"[session] ✅ Đăng thành công! Post ID: {final_state['facebook_post_id']}")
             send_message(f"✅ <b>Đã đăng bài thành công!</b>\n📌 Post ID: {final_state['facebook_post_id']}")
+            fire("on_post_published", dict(final_state))  # Plugin: ghi post_log.csv
             # → quay lại Main Menu
 
         elif approval_status == "back_to_topic":

@@ -47,7 +47,8 @@ def render_main_menu_keyboard() -> dict:
     return {
         "inline_keyboard": [
             [
-                {"text": "✍️ Viết bài", "callback_data": "menu_write"},
+                {"text": "✍️ Viết bài",  "callback_data": "menu_write"},
+                {"text": "📊 Báo cáo",   "callback_data": "menu_report"},
             ]
         ]
     }
